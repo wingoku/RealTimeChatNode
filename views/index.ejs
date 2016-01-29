@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+  <title><%= title %></title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+<body>
+<h1><%= title %></h1>
+<p>Welcome to <%= title %></p>
+
+<div id="chatWindow"> </div>
+
+<script type = "text/javascript"
+        src = "http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src = "http://localhost:3000/socket.io/socket.io.js"></script>
+
+<script type = "text/javascript" language = "javascript">
+
+var socket = io('http://localhost:3000');
+
+socket.on('connect',function(){
+  console.log("socket connected to server");
+});
+
+socket.on('disconnect', function(data) {
+  console.log("socket disconnected from server");
+});
+
+socket.on('sendMessageToClient', function(data) {
+  console.log("dataFromServer", data)
+
+  $('#chatWindow').append("<br /> "+ data);
+});
+
+socket.on('userInfoValidatedFromServer', function(data) {
+  console.log("dataFromServer", data)
+
+  console.log("before: "+ data['connectedUsersList']);
+  var connectedUsersList = data['connectedUsersList'].replace(/,/g, ' <br /> ');
+  console.log("after: "+ connectedUsersList);
+  $("#connectedUsersList").append('<br /> '+ connectedUsersList);
+  console.log("userName: "+ $('userNameEditText').val() + " response: "+ data['response']);
+  if (data['response'] === 'success' && data['userName'] === $('userNameEditText').val()) {
+      $('#loginForm').hide();
+      $('#chatForm').show();
+  }
+
+});
+
+  $(document).ready(function() {
+    $('#chatForm').hide();
+
+      var $userNameEditText = $('#userNameEditText');
+      var $loginButton = $('#loginButton');
+
+      $loginButton.click(function() {
+          event.preventDefault();
+          var userName = $userNameEditText.val();
+          socket.emit('userInfo', userName);
+      });
+  });
+
+  $(document).ready(function() {
+    var $chatSendButton = $('#chatButton');
+    var $chatBox        = $('#chatBox');
+
+    $chatSendButton.click(function() {
+      event.preventDefault();
+      var userMessage = $chatBox.val();
+      $chatBox.val('');
+
+      sendMessageToServer(userMessage);
+      return false;
+    });
+
+    $chatBox.bind('keypress', function(event) {
+        if(event.which == 13) {
+          var userMessage = $chatBox.val();
+          $chatBox.val('');
+          sendMessageToServer(userMessage);
+        }
+    });
+
+    function sendMessageToServer(userMessage){
+      console.log("sending message from client");
+
+      socket.emit('sendMessageToServer', userMessage, function(confirmation) {
+        alert("emit callback");
+      });
+    }
+  });
+
+</script>
+
+<form action="post" id="chatForm">
+  <input type="text" id="chatBox" />
+  <button type="button" value = "submit" id="chatButton"> Send </button>
+</form>
+
+<form action="post" id="loginForm">
+  <input type="text" id="userNameEditText"/>
+  <button type="button" value="submit" id="loginButton"> Login </button>
+</form>
+
+<div id="connectedUsersList" class="connectedUserDiv">Connected Users List:</div>
+
+</body>
+</html>

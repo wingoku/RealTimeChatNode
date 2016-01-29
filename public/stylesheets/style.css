@@ -1,0 +1,14 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+#connectedUserDiv {
+  position: fixed; /* This will be always visible and positioned where you want */
+  bottom: 10; /* place it to the bottom */
+  z-index: 9999; /* You may want to be sure no other elements will be displayed on top of it, raise this if it's still being displayed under other elements */
+}
