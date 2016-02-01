@@ -20,14 +20,14 @@ function handleSockets(tag, data, callbackFunction) {
   else
       if(tag === "chatRequest") {
             console.error("chat request");
-            sendChatRequestToSpecifiedUser(data);
+            sendChatRequestToSpecifiedUser(data, callbackFunction);
         }
       else
         callbackFunction("sendMessageToClient", data, true);
 }
 
 function sendChatRequestToSpecifiedUser(data, callbackFunction) {
-    console.error("requestedUesrsNme:"+ data['requestedUserName'] + " allSessionID: "+ utils.getAllConnectedUsersSession());
+    console.error("Index.js requestedUesrsNme:"+ data['requestedUserName'] + " allSessionID: ", utils.getAllConnectedUsersSession());
     var requestedUserSessionID = utils.getUserSessionID(data['requestedUserName']);
     console.error("requestedUsersID: ", requestedUserSessionID);
     if(requestedUserSessionID) {
