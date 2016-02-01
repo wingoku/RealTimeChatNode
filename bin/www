@@ -74,9 +74,9 @@ function makeSessionIDComplientWithSocketServerFormat(clientSessionID) {
 }
 
 function sendMessageToClientBySockets(tag, data, shouldBroadcastToEveryone) {
-    if(tag === 'chatRequestFromAUser') {
+    if(tag === 'chatRequest') {
       console.error("chatRequestAtServer: ", data);
-       io.sockets.connected[data['socketIdOfRequestedUser']].emit('userConnectionRequest', data['requester']);
+       io.sockets.connected[data['socketIdOfRequestedUser']].emit(tag, data['requester']);
     }
     else
     if(tag === 'chatRequestConfirmation') {

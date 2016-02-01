@@ -5,7 +5,7 @@
   <link rel='stylesheet' href='/stylesheets/style.css' />
 
   <script type = "text/javascript"
-          src = "http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+          src = "http://localhost:81/jquery-1.12.0.min.js"></script> <!-- http://ajax.googleapis.com/ajax/libs/jquery/2.1.3 -->
   <script src = "http://localhost:3000/socket.io/socket.io.js"></script>
 
 </head>
@@ -36,7 +36,7 @@ socket.on('sendMessageToClient', function(data) {
   $('#chatWindow').append("<br /> "+ data);
 });
 
-socket.on('userConnectionRequest', function(requsterName) {
+socket.on('chatRequest', function(requsterName) {
   console.log("chat request", requsterName)
 
   var $chatRequestPromptDiv = $('#chatRequestPromptDiv');
@@ -44,12 +44,12 @@ socket.on('userConnectionRequest', function(requsterName) {
 
   $('#acceptButton').click(function(){
       console.log("send confirmation to the requester ", {requester: requsterName});
-      socket.emit("chatRequestAccepted", {requester: requsterName});
+      socket.emit("chatRequestConfirmation", {requester: requsterName, isChatRequestAccepted: true});
   });
 
   $('#rejectButton').click(function(){
     console.log("send rejection message to the requester");
-    socket.emit("chatRequestRejected", {requesterName: requsterName});
+    socket.emit("chatRequestConfirmation", {requesterName: requsterName, isChatRequestAccepted: false});
   });
 });
 

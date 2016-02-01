@@ -23,14 +23,15 @@ function handleSockets(tag, data, callbackFunction) {
             sendChatRequestToSpecifiedUser(data, callbackFunction);
         }
       else
-        if(tag === 'chatRequestAccepted') {
-            console.log("Index.js, chatRequestAccepted", {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])});
-            callbackFunction('chatRequestConfirmation', {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])}, false);
-        }
-        else
-            if(tag === 'chatRequestRejected') {
+        if(tag === 'chatRequestConfirmation') {
+            if(data['isChatRequestAccepted'] == true) {
+                console.log("Index.js, chatRequestAccepted", {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])});
+                callbackFunction('chatRequestConfirmation', {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])}, false);
+            }
+            else{
                 callbackFunction('chatRequestConfirmation', {chatAccepted: false, sessionID:utils.getUserSessionID(data['requester'])}, false);
             }
+        }
         else
             callbackFunction("sendMessageToClient", data, true);
 }
@@ -41,7 +42,7 @@ function sendChatRequestToSpecifiedUser(data, callbackFunction) {
     console.error("requestedUsersID: ", requestedUserSessionID);
     if(requestedUserSessionID) {
         var info = {requester: data['requester'], socketIdOfRequestedUser: requestedUserSessionID};
-        callbackFunction("chatRequestFromAUser", info, false); // to send the request to the specified user, we need to know his socket id
+        callbackFunction("chatRequest", info, false); // to send the request to the specified user, we need to know his socket id
     }
 }
 
