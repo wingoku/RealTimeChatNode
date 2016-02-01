@@ -15,8 +15,8 @@
 <script src = "http://localhost:3000/socket.io/socket.io.js"></script>
 
 <script type = "text/javascript" language = "javascript">
-
-var socket = io('http://localhost:3000');
+  console.log("calling socket on client");
+var socket = io();
 
 socket.on('connect',function(){
   console.log("socket connected to server");
@@ -32,6 +32,12 @@ socket.on('sendMessageToClient', function(data) {
   $('#chatWindow').append("<br /> "+ data);
 });
 
+socket.on('userConnectionRequest', function(requsterName) {
+  console.log("chat request", requsterName)
+
+  alert("chat request fromm: "+ requsterName);
+});
+
 socket.on('userInfoValidatedFromServer', function(data) {
   console.log("dataFromServer", data)
 
@@ -44,9 +50,9 @@ socket.on('userInfoValidatedFromServer', function(data) {
       $('#loginForm').hide();
       $('#chatForm').show();
   }
-
 });
 
+  var userName;
   $(document).ready(function() {
     $('#chatForm').hide();
 
@@ -55,8 +61,8 @@ socket.on('userInfoValidatedFromServer', function(data) {
 
       $loginButton.click(function() {
           event.preventDefault();
-          var userName = $userNameEditText.val();
-          socket.emit('userInfo', userName);
+          userName = $userNameEditText.val();
+          socket.emit('userInfo', {userName:userName, sessionID: socket.id.toString()});
       });
   });
 
@@ -81,6 +87,10 @@ socket.on('userInfoValidatedFromServer', function(data) {
         }
     });
 
+    $('#request').click(function() {
+      socket.emit('chatRequest', {requester: userName, requestedUserName: $chatBox.val(), sessionID:socket.id.toString()});
+    });
+
     function sendMessageToServer(userMessage){
       console.log("sending message from client");
 
@@ -95,6 +105,7 @@ socket.on('userInfoValidatedFromServer', function(data) {
 <form action="post" id="chatForm">
   <input type="text" id="chatBox" />
   <button type="button" value = "submit" id="chatButton"> Send </button>
+  <button type="button" value="submit" id="request"> request </button>
 </form>
 
 <form action="post" id="loginForm">
