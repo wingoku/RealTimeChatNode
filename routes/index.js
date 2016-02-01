@@ -23,7 +23,16 @@ function handleSockets(tag, data, callbackFunction) {
             sendChatRequestToSpecifiedUser(data, callbackFunction);
         }
       else
-        callbackFunction("sendMessageToClient", data, true);
+        if(tag === 'chatRequestAccepted') {
+            console.log("Index.js, chatRequestAccepted", {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])});
+            callbackFunction('chatRequestConfirmation', {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])}, false);
+        }
+        else
+            if(tag === 'chatRequestRejected') {
+                callbackFunction('chatRequestConfirmation', {chatAccepted: false, sessionID:utils.getUserSessionID(data['requester'])}, false);
+            }
+        else
+            callbackFunction("sendMessageToClient", data, true);
 }
 
 function sendChatRequestToSpecifiedUser(data, callbackFunction) {

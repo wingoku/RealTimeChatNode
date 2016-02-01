@@ -3,6 +3,11 @@
 <head>
   <title><%= title %></title>
   <link rel='stylesheet' href='/stylesheets/style.css' />
+
+  <script type = "text/javascript"
+          src = "http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src = "http://localhost:3000/socket.io/socket.io.js"></script>
+
 </head>
 <body>
 <h1><%= title %></h1>
@@ -10,9 +15,8 @@
 
 <div id="chatWindow"> </div>
 
-<script type = "text/javascript"
-        src = "http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script src = "http://localhost:3000/socket.io/socket.io.js"></script>
+<div id="#jqueryUiDialog" title="Chat Request">New Chat Request</div>
+
 
 <script type = "text/javascript" language = "javascript">
   console.log("calling socket on client");
@@ -35,7 +39,26 @@ socket.on('sendMessageToClient', function(data) {
 socket.on('userConnectionRequest', function(requsterName) {
   console.log("chat request", requsterName)
 
-  alert("chat request fromm: "+ requsterName);
+  var $chatRequestPromptDiv = $('#chatRequestPromptDiv');
+  $chatRequestPromptDiv.show();
+
+  $('#acceptButton').click(function(){
+      console.log("send confirmation to the requester ", {requester: requsterName});
+      socket.emit("chatRequestAccepted", {requester: requsterName});
+  });
+
+  $('#rejectButton').click(function(){
+    console.log("send rejection message to the requester");
+    socket.emit("chatRequestRejected", {requesterName: requsterName});
+  });
+});
+
+socket.on('chatRequestConfirmation', function(data) {
+  var status = data['chatAccepted'];
+  if(status == true)
+    alert('chat request accepted');
+  else
+    alert('chat request rejected');
 });
 
 socket.on('userInfoValidatedFromServer', function(data) {
@@ -55,6 +78,7 @@ socket.on('userInfoValidatedFromServer', function(data) {
   var userName;
   $(document).ready(function() {
     $('#chatForm').hide();
+    $('#chatRequestPromptDiv').hide();
 
       var $userNameEditText = $('#userNameEditText');
       var $loginButton = $('#loginButton');
@@ -96,6 +120,7 @@ socket.on('userInfoValidatedFromServer', function(data) {
 
       socket.emit('sendMessageToServer', userMessage, function(confirmation) {
         alert("emit callback");
+
       });
     }
   });
@@ -113,7 +138,13 @@ socket.on('userInfoValidatedFromServer', function(data) {
   <button type="button" value="submit" id="loginButton"> Login </button>
 </form>
 
+<div id="chatRequestPromptDiv">
+  <button type="button" value="submit" id="acceptButton"> Accept </button>
+  <button type="button" value="submit" id="rejectButton"> Reject </button>
+</div>
+
 <div id="connectedUsersList" class="connectedUserDiv">Connected Users List:</div>
+
 
 </body>
 </html>
