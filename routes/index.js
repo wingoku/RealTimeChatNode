@@ -12,9 +12,8 @@ router.get('/', function(req, res, next) {
 });
 
 function handleSockets(tag, data, callbackFunction) {
-  //console.error(tag, "received in index.js: " + data);
 
-  if(tag === "userInfo") {
+  if(tag === "validateUserInfo") {
       validUserLogin(data, callbackFunction);
   }
   else
@@ -57,13 +56,11 @@ function onConnectedUserNamesListRetreived(clientData, connectUserNamesList, cal
     if(connectUserNamesList.indexOf(clientData['userName']) > -1)
         onUserNameValidationCompleted(false, clientData, "", callbackFunction);
     else {
-        //var temp = connectUserNamesList.replace( /,/g, '_');
         onUserNameValidationCompleted(true, clientData, connectUserNamesList, callbackFunction);
     }
 }
 
 function onUserNameValidationCompleted(isUserNameValid, clientData, previouslyConnectedUsersList, callbackToWWW_sendMessageToClientBySockets) {
-    //console.log("userName validatio completed: "+ isUserNameValid);
     if (isUserNameValid) {
         console.log("Index.js: valid: "+clientData['sessionID']);
         callbackToWWW_sendMessageToClientBySockets("userInfoValidatedFromServer", {response: 'success', connectedUsersList: previouslyConnectedUsersList, sessionID: clientData['sessionID']}, false);
@@ -77,25 +74,23 @@ function onUserNameValidationCompleted(isUserNameValid, clientData, previouslyCo
 function persistTheConnectedUserNameToDisk(userName) {
     fs.openSync('connectedUsersList.txt', 'r+', function(err) {
         if(err) {
-          //console.error("error in opening the file: "+ err);
+          console.error("error in opening the file: "+ err);
         }
     });
 
     fs.appendFile('connectedUsersList.txt', userName+",", function(err) {
-        //if(err)
-          //console.error('Error Occured writing file: ', err);
+        if(err)
+          console.error('Error Occured writing file: ', err);
     });
 }
 
 function readConnectedUsersListFromDisk(clientData, callbackFunction) {
-  //console.log("enter Read method");
 
   fs.readFile('connectedUsersList.txt', function(err, data) {
-    //console.log("read callbacj: "+ typeof(data));
-   // if(err)
-      //console.error('Error Occured writing file: ', err);
 
-    //console.log("dataFromDisk: "+ data);
+    if(err)
+      console.error('Error Occured writing file: ', err);
+
       onConnectedUserNamesListRetreived(clientData, data.toString(), callbackFunction);
   });
 }

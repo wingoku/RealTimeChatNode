@@ -37,20 +37,17 @@ io.sockets.on('connection', function(sock){
   socket = sock;
   socket.on('sendMessageToServer', function(data) {
     appjs.indexjs.handleSockets('sendMessageToServer', data, sendMessageToClientBySockets);
-    console.log("receved in www: "+ data);
   });
 
-  socket.on('userInfo', function(data) {
-    console.error("WWW.js socketID upon login: "+ data['sessionID'] + " userName: "+ data['requestedUserName']);
+  socket.on('validateUserInfo', function(data) {
+    console.error("WWW.js socketID upon login: "+ data['sessionID']);
     var sessionIDInSocketServerFormat =  makeSessionIDComplientWithSocketServerFormat(data['sessionID']); // when we get the session id on server from a socket, it has /# in the begining. The sessionID provided by the client doesn't have this in the start. If we pass the sessoinID without /# appeneded in the begining, the server crashes when emit is called on the socket with this id
     var newData = {userName: data['userName'], sessionID:sessionIDInSocketServerFormat};
 
-    appjs.indexjs.handleSockets('userInfo', newData, sendMessageToClientBySockets);
+    appjs.indexjs.handleSockets('validateUserInfo', newData, sendMessageToClientBySockets);
   });
 
   socket.on('chatRequest', function(data) {
-    var sessionIDInSocketServerFormat =  makeSessionIDComplientWithSocketServerFormat(data['sessionID']);
-    //var newData = {userName: data['requestedUserName'], sessionID:sessionIDInSocketServerFormat};
     console.error("WWW.js socketID upon login: "+ data['sessionID'] + " userName: "+ data['requestedUserName']);
     appjs.indexjs.handleSockets('chatRequest', data, sendMessageToClientBySockets);
   });
@@ -91,7 +88,6 @@ function sendMessageToClientBySockets(tag, data, shouldBroadcastToEveryone) {
         console.error("sessionID: "+ data['sessionID']);
         io.sockets.connected[data['sessionID']].emit(tag, data);
       }
-
 }
 
 

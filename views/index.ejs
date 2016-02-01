@@ -86,7 +86,7 @@ socket.on('userInfoValidatedFromServer', function(data) {
       $loginButton.click(function() {
           event.preventDefault();
           userName = $userNameEditText.val();
-          socket.emit('userInfo', {userName:userName, sessionID: socket.id.toString()});
+          socket.emit('validateUserInfo', {userName:userName, sessionID: socket.id.toString()});
       });
   });
 
