@@ -8,12 +8,9 @@ var bodyParser = require('body-parser');
 
 var indexjs = require('./routes/index');
 var routes = indexjs.router;
-console.log("NODE: app.js requring index.js");
 var users = require('./routes/users');
 
-
 var app = express();
-console.log("NODE: app.js initializing express");
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -61,3 +58,5 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = {app: app, indexjs: indexjs};
+
+//todo: remove the name from the connected users list when the user disconnects

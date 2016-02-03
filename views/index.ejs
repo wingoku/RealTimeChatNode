@@ -27,7 +27,8 @@ socket.on('connect',function(){
 });
 
 socket.on('disconnect', function(data) {
-  console.log("socket disconnected from server");
+  console.log("socket disconnected from server: "+ socket.id.toString());
+  socket.emit('temp', {sessionID:socket.id.toString()});
 });
 
 socket.on('sendMessageToClient', function(data) {

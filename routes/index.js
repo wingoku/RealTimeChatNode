@@ -1,5 +1,4 @@
 var express = require('express');
-var fs = require('fs');
 var app = express();
 var router = express.Router();
 var http = require('http');
@@ -13,16 +12,20 @@ router.get('/', function(req, res, next) {
 
 function handleSockets(tag, data, callbackFunction) {
 
-  if(tag === "validateUserInfo") {
-      validUserLogin(data, callbackFunction);
-  }
-  else
-      if(tag === "chatRequest") {
-            console.error("chat request");
+    switch(tag) {
+        case "yolo":
+            console.log("switch statment yolo");
+            break;
+
+        case "validateUserInfo":
+            validUserLogin(data, callbackFunction);
+            break;
+
+        case "chatRequest":
             sendChatRequestToSpecifiedUser(data, callbackFunction);
-        }
-      else
-        if(tag === 'chatRequestConfirmation') {
+            break;
+
+        case 'chatRequestConfirmation':
             if(data['isChatRequestAccepted'] == true) {
                 console.log("Index.js, chatRequestAccepted", {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])});
                 callbackFunction('chatRequestConfirmation', {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])}, false);
@@ -30,9 +33,12 @@ function handleSockets(tag, data, callbackFunction) {
             else{
                 callbackFunction('chatRequestConfirmation', {chatAccepted: false, sessionID:utils.getUserSessionID(data['requester'])}, false);
             }
-        }
-        else
+            break;
+
+        default:
             callbackFunction("sendMessageToClient", data, true);
+            break;
+    }
 }
 
 function sendChatRequestToSpecifiedUser(data, callbackFunction) {
@@ -48,7 +54,7 @@ function sendChatRequestToSpecifiedUser(data, callbackFunction) {
 function validUserLogin(data, callbackFunction) {
     console.log("userName in Index.js: ", data);
 
-    readConnectedUsersListFromDisk(data, callbackFunction);
+    utils.readConnectedUsersListFromDisk(data, onConnectedUserNamesListRetreived, callbackFunction);
 }
 
 function onConnectedUserNamesListRetreived(clientData, connectUserNamesList, callbackFunction) {
@@ -64,35 +70,11 @@ function onUserNameValidationCompleted(isUserNameValid, clientData, previouslyCo
     if (isUserNameValid) {
         console.log("Index.js: valid: "+clientData['sessionID']);
         callbackToWWW_sendMessageToClientBySockets("userInfoValidatedFromServer", {response: 'success', connectedUsersList: previouslyConnectedUsersList, sessionID: clientData['sessionID']}, false);
-        persistTheConnectedUserNameToDisk(clientData['userName']);
+        utils.persistTheConnectedUserNameToDisk(clientData['userName']);
         utils.addNewUserSocketSession(clientData['userName'], clientData['sessionID']);
     }
     else
         callbackToWWW_sendMessageToClientBySockets("userInfoValidatedFromServer", {response:'failure', connectedUsersList:'failure: User Name Taken', sessionID: clientData['sessionID']}, false);
-}
-
-function persistTheConnectedUserNameToDisk(userName) {
-    fs.openSync('connectedUsersList.txt', 'r+', function(err) {
-        if(err) {
-          console.error("error in opening the file: "+ err);
-        }
-    });
-
-    fs.appendFile('connectedUsersList.txt', userName+",", function(err) {
-        if(err)
-          console.error('Error Occured writing file: ', err);
-    });
-}
-
-function readConnectedUsersListFromDisk(clientData, callbackFunction) {
-
-  fs.readFile('connectedUsersList.txt', function(err, data) {
-
-    if(err)
-      console.error('Error Occured writing file: ', err);
-
-      onConnectedUserNamesListRetreived(clientData, data.toString(), callbackFunction);
-  });
 }
 
 module.exports = {router: router, handleSockets:handleSockets};
