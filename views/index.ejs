@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/html">
 <head>
+    <meta charset="utf-8">
   <title><%= title %></title>
   <link rel='stylesheet' href='/stylesheets/style.css' />
 
   <script type = "text/javascript"
           src = "http://localhost:81/jquery-1.12.0.min.js"></script> <!-- http://ajax.googleapis.com/ajax/libs/jquery/2.1.3 -->
+  <link rel="stylesheet" href="http://localhost:81/jquery-ui-custom/jquery-ui.css"/>
+  <script src = "http://localhost:81/jquery-ui-custom/jquery-ui.js"></script>
   <script src = "http://localhost:3000/socket.io/socket.io.js"></script>
-
 </head>
 <body>
 <h1><%= title %></h1>
 <p>Welcome to <%= title %></p>
 
 <div id="chatWindow"> </div>
-
-<div id="#jqueryUiDialog" title="Chat Request">New Chat Request</div>
-
 
 <script type = "text/javascript" language = "javascript">
   console.log("calling socket on client");
@@ -78,6 +77,8 @@ socket.on('userInfoValidatedFromServer', function(data) {
 
   var userName;
   $(document).ready(function() {
+    console.log("going to display the jquery dialog");
+    $('#testDialog').dialog('open');
     $('#chatForm').hide();
     $('#chatRequestPromptDiv').hide();
 
@@ -146,6 +147,9 @@ socket.on('userInfoValidatedFromServer', function(data) {
 
 <div id="connectedUsersList" class="connectedUserDiv">Connected Users List:</div>
 
+<div id="#testDialog" title="Chat Request hello">
+    <p>Jquery UI Dialog</p>
+</div>
 
 </body>
 </html>
