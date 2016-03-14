@@ -3,13 +3,7 @@
 <head>
     <meta charset="utf-8">
   <title><%= title %></title>
-  <link rel='stylesheet' href='/stylesheets/style.css' />
 
-  <script type = "text/javascript"
-          src = "http://localhost:81/jquery-1.12.0.min.js"></script> <!-- http://ajax.googleapis.com/ajax/libs/jquery/2.1.3 -->
-  <link rel="stylesheet" href="http://localhost:81/jquery-ui-custom/jquery-ui.css"/>
-  <script src = "http://localhost:81/jquery-ui-custom/jquery-ui.js"></script>
-  <script src = "http://localhost:3000/socket.io/socket.io.js"></script>
 </head>
 <body>
 <h1><%= title %></h1>
@@ -17,79 +11,150 @@
 
 <div id="chatWindow"> </div>
 
+<form action="post" id="chatForm">
+  <input type="text" id="chatBox" />
+  <button type="button" value = "submit" id="chatButton"> Send </button>
+  <button type="button" value="submit" id="request"> request </button>
+</form>
+
+<form action="post" id="loginForm">
+  <input type="text" id="userNameEditText"/>
+  <button type="button" value="submit" id="loginButton"> Login </button>
+</form>
+
+<!--<div id="chatRequestPromptDiv">-->
+  <!--<button type="button" value="submit" id="acceptButton"> Accept </button>-->
+  <!--<button type="button" value="submit" id="rejectButton"> Reject </button>-->
+<!--</div>-->
+
+<div id="connectedUsersList" class="connectedUserDiv">Connected Users List:</div>
+
+<div id="#testDialog" title="Chat Request hello">
+    <p>Jquery UI Dialog</p>
+</div>
+
+<link rel='stylesheet' href='/stylesheets/style.css' />
+
+<script type = "text/javascript"
+        src = "http://localhost:81/jquery-1.12.0.min.js"></script> <!-- http://ajax.googleapis.com/ajax/libs/jquery/2.1.3 -->
+<link rel="stylesheet" href="http://localhost:81//alertifyDialogs/themes/alertify.bootstrap.css"/>
+<script src = "http://localhost:81/alertifyDialogs/src/alertify.js"></script>
+<script src = "http://localhost:3000/socket.io/socket.io.js"></script>
+
 <script type = "text/javascript" language = "javascript">
   console.log("calling socket on client");
-var socket = io();
+  var socket = io();
 
-socket.on('connect',function(){
-  console.log("socket connected to server");
-});
-
-socket.on('disconnect', function(data) {
-  console.log("socket disconnected from server: "+ socket.id.toString());
-  socket.emit('temp', {sessionID:socket.id.toString()});
-});
-
-socket.on('sendMessageToClient', function(data) {
-  console.log("dataFromServer", data)
-
-  $('#chatWindow').append("<br /> "+ data);
-});
-
-socket.on('chatRequest', function(requsterName) {
-  console.log("chat request", requsterName)
-
-  var $chatRequestPromptDiv = $('#chatRequestPromptDiv');
-  $chatRequestPromptDiv.show();
-
-  $('#acceptButton').click(function(){
-      console.log("send confirmation to the requester ", {requester: requsterName});
-      socket.emit("chatRequestConfirmation", {requester: requsterName, isChatRequestAccepted: true});
+  socket.on('connect',function(){
+    console.log("socket connected to server");
   });
 
-  $('#rejectButton').click(function(){
-    console.log("send rejection message to the requester");
-    socket.emit("chatRequestConfirmation", {requesterName: requsterName, isChatRequestAccepted: false});
+  socket.on('disconnect', function(data) {
+    console.log("socket disconnected from server: "+ socket.id);
+    socket.emit('temp', {sessionID:socket.id});
   });
-});
 
-socket.on('chatRequestConfirmation', function(data) {
-  var status = data['chatAccepted'];
-  if(status == true)
-    alert('chat request accepted');
-  else
-    alert('chat request rejected');
-});
+  socket.on('sendMessageToClient', function(data) {
+    console.log("dataFromServer", data)
 
-socket.on('userInfoValidatedFromServer', function(data) {
-  console.log("dataFromServer", data)
+    $('#chatWindow').append("<br /> "+ data);
+  });
 
-  console.log("before: "+ data['connectedUsersList']);
-  var connectedUsersList = data['connectedUsersList'].replace(/,/g, ' <br /> ');
-  console.log("after: "+ connectedUsersList);
-  $("#connectedUsersList").append('<br /> '+ connectedUsersList);
-  console.log("userName: "+ $('userNameEditText').val() + " response: "+ data['response']);
-  if (data['response'] === 'success' && data['userName'] === $('userNameEditText').val()) {
+  socket.on('chatMessage', function(data) {
+    alert("message is: "+ data);
+  });
+
+  socket.on('chatRequest', function(requsterName) {
+    console.log("chat request", requsterName)
+
+//    var $chatRequestPromptDiv = $('#chatRequestPromptDiv');
+//    $chatRequestPromptDiv.show();
+
+    alertify.confirm(requsterName+" wants to chat.", function (e) {
+      if (e) {
+        alertify.success();
+        // user clicked "ok"
+        console.log("send confirmation to the requester ", {requester: requsterName});
+        socket.emit("chatRequestAccepted", {accepterUserName:userName ,requester: requsterName, isChatRequestAccepted: true});
+      } else {
+        // user clicked "cancel"
+        alertify.error();
+        console.log("send rejection message to the requester");
+        socket.emit("chatRequestRejected", {requesterName: requsterName, isChatRequestAccepted: false});
+      }
+    });
+
+    $('#acceptButton').click(function(){
+
+    });
+
+    $('#rejectButton').click(function(){
+
+    });
+  });
+
+  var chatRequestAccepterSocketID;
+  socket.on('chatRequestConfirmation', function(data) {
+    var status = data['chatAccepted'];
+    console.log("chatRequestConfirmationCALLBACK", data);
+    chatRequestAccepterSocketID = data['accepterSessionID'];
+    if(status === true)
+      alert('chat request accepted');
+    else
+      alert('chat request rejected');
+
+    // todo: now write code start delegating messages between requester and requestee
+
+    // default: OK, Cancel
+    alertify.set({ labels: {
+      ok     : "Send",
+      cancel : "Close"
+    } });
+
+    // prompt dialog
+    alertify.prompt("Chat", function (e, message) {
+      // str is the input text
+      if (e) {
+        // user clicked "ok"
+        socket.emit('sendChatMessageToUser', {chatMessageRecieverSocketID:chatRequestAccepterSocketID, message:message}, function(confirmation) {
+        });
+
+        } else {
+        // user clicked "cancel"
+      }
+    }, "Default Value");
+
+  });
+
+  socket.on('userInfoValidatedFromServer', function(data) {
+    console.log("dataFromServer", data)
+
+    console.log("before: "+ data['connectedUsersList']);
+    var connectedUsersList = data['connectedUsersList'].replace(/,/g, ' <br /> ');
+    console.log("after: "+ connectedUsersList);
+    $("#connectedUsersList").append('<br /> '+ connectedUsersList);
+    console.log("userName: "+ $('userNameEditText').val() + " response: "+ data['response']);
+    if (data['response'] === 'success' && data['userName'] === $('userNameEditText').val()) {
       $('#loginForm').hide();
       $('#chatForm').show();
-  }
-});
+    }
+  });
 
   var userName;
   $(document).ready(function() {
     console.log("going to display the jquery dialog");
-    $('#testDialog').dialog('open');
+//    $('#testDialog').dialog('open');
     $('#chatForm').hide();
     $('#chatRequestPromptDiv').hide();
 
-      var $userNameEditText = $('#userNameEditText');
-      var $loginButton = $('#loginButton');
+    var $userNameEditText = $('#userNameEditText');
+    var $loginButton = $('#loginButton');
 
-      $loginButton.click(function() {
-          event.preventDefault();
-          userName = $userNameEditText.val();
-          socket.emit('validateUserInfo', {userName:userName, sessionID: socket.id.toString()});
-      });
+    $loginButton.click(function() {
+      event.preventDefault();
+      userName = $userNameEditText.val();
+      socket.emit('validateUserInfo', {userName:userName, sessionID: socket.id.toString()});
+    });
   });
 
   $(document).ready(function() {
@@ -106,11 +171,11 @@ socket.on('userInfoValidatedFromServer', function(data) {
     });
 
     $chatBox.bind('keypress', function(event) {
-        if(event.which == 13) {
-          var userMessage = $chatBox.val();
-          $chatBox.val('');
-          sendMessageToServer(userMessage);
-        }
+      if(event.which == 13) {
+        var userMessage = $chatBox.val();
+        $chatBox.val('');
+        sendMessageToServer(userMessage);
+      }
     });
 
     $('#request').click(function() {
@@ -128,28 +193,6 @@ socket.on('userInfoValidatedFromServer', function(data) {
   });
 
 </script>
-
-<form action="post" id="chatForm">
-  <input type="text" id="chatBox" />
-  <button type="button" value = "submit" id="chatButton"> Send </button>
-  <button type="button" value="submit" id="request"> request </button>
-</form>
-
-<form action="post" id="loginForm">
-  <input type="text" id="userNameEditText"/>
-  <button type="button" value="submit" id="loginButton"> Login </button>
-</form>
-
-<div id="chatRequestPromptDiv">
-  <button type="button" value="submit" id="acceptButton"> Accept </button>
-  <button type="button" value="submit" id="rejectButton"> Reject </button>
-</div>
-
-<div id="connectedUsersList" class="connectedUserDiv">Connected Users List:</div>
-
-<div id="#testDialog" title="Chat Request hello">
-    <p>Jquery UI Dialog</p>
-</div>
 
 </body>
 </html>

@@ -12,6 +12,7 @@ router.get('/', function(req, res, next) {
 
 function handleSockets(tag, data, callbackFunction) {
 
+    console.log("INDEX.JS->HANDLEsOCKETS()", tag + " ", data);
     switch(tag) {
         case "yolo":
             console.log("switch statment yolo");
@@ -25,14 +26,20 @@ function handleSockets(tag, data, callbackFunction) {
             sendChatRequestToSpecifiedUser(data, callbackFunction);
             break;
 
-        case 'chatRequestConfirmation':
-            if(data['isChatRequestAccepted'] == true) {
-                console.log("Index.js, chatRequestAccepted", {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])});
-                callbackFunction('chatRequestConfirmation', {chatAccepted: true, sessionID:utils.getUserSessionID(data['requester'])}, false);
-            }
-            else{
-                callbackFunction('chatRequestConfirmation', {chatAccepted: false, sessionID:utils.getUserSessionID(data['requester'])}, false);
-            }
+        case 'chatRequestAccepted':
+            console.log("Index.js, chatRequestAccepted", "requester session ID: "+utils.getUserSessionID(data['requester']));
+            callbackFunction('chatRequestConfirmation', {chatAccepted: true, requesterSessionID:utils.getUserSessionID(data['requester']),
+                accepterSessionID:utils.getUserSessionID(data['accepterUserName'])}, true);
+            //if(data['isChatRequestAccepted'] == true) {
+            //
+            //}
+            //else{
+            //
+            //}
+            break;
+
+        case 'chatRequestRejected':
+            callbackFunction('chatRequestConfirmation', {chatAccepted: false, sessionID:utils.getUserSessionID(data['requester'])}, false);
             break;
 
         default:
